@@ -87,7 +87,7 @@ func Worker(
 
 		// Check if we need to add a schema reference
 		if addSchemaReference {
-			schemaRef := `# yaml-language-server: $schema=values.schema.json`
+			schemaRef := `# yaml-language-server: $schema=` + outFile
 			if !strings.Contains(string(content), schemaRef) {
 				err = util.PrefixFirstYamlDocument(schemaRef, valuesPath)
 				if err != nil {
