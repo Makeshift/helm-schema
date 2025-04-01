@@ -247,7 +247,15 @@ loop:
 						}
 						depSchema.DisableRequiredProperties()
 
-						if dep.Alias != "" {
+						if (dependencyResult.Chart.Type == "library") {
+							log.Debugf("Dependency %s is a library chart, merging values into parent", dep.Name)
+							for k, v := range dependencyResult.Schema.Properties {
+								if _, ok := result.Schema.Properties[k]; !ok {
+									result.Schema.Properties[k] = v
+								}
+							}
+							continue
+						} else if dep.Alias != "" {
 							result.Schema.Properties[dep.Alias] = &depSchema
 						} else {
 							result.Schema.Properties[dep.Name] = &depSchema
