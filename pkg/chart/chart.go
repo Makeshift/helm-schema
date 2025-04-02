@@ -7,6 +7,13 @@ import (
 	yaml "gopkg.in/yaml.v3"
 )
 
+// an ImportValue can be a string or a map, but I don't know how to emulate a
+//  discriminated union in go
+type ImportValue struct {
+	Child string `yaml:"child,omitempty"`
+	Parent string `yaml:"parent,omitempty"`
+}
+
 type Dependency struct {
 	Name       string `yaml:"name"`
 	Version    string `yaml:"version"`
@@ -14,7 +21,7 @@ type Dependency struct {
 	Repository string `yaml:"repository,omitempty"`
 	Alias      string `yaml:"alias,omitempty"`
 	// Tags         []string `yaml:"tags,omitempty"`
-	// ImportValues []string `yaml:"import-values,omitempty"`
+	ImportValues []ImportValue `yaml:"import-values,omitempty"`
 }
 
 // Maintainer describes a Chart maintainer.

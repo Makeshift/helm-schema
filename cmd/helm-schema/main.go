@@ -247,6 +247,98 @@ loop:
 						}
 						depSchema.DisableRequiredProperties()
 
+						if dep.ImportValues != nil {
+							log.Debugf("Dependency %s has import-values, merging values into parent", dep.Name)
+							for _, importValue := range dep.ImportValues {
+									if importValue.Child != "" && importValue.Parent != "" {
+											// Map format: {child: childPath, parent: parentPath}
+											log.Debugf("  Importing values from %s to %s", importValue.Child, importValue.Parent)
+
+											childParts := strings.Split(importValue.Child, ".")
+											parentParts := strings.Split(importValue.Parent, ".")
+
+											// Find schema at source path in dependency schema
+											var sourceSchema *schema.Schema
+											currentSchema := &depSchema
+											for i, part := range childParts {
+													if i == len(childParts)-1 {
+															if prop, ok := currentSchema.Properties[part]; ok {
+																	sourceSchema = prop
+															} else {
+																	log.Warnf("Source path %s not found in dependency %s", importValue.Child, dep.Name)
+																	break
+															}
+													} else {
+															if prop, ok := currentSchema.Properties[part]; ok {
+																	currentSchema = prop
+															} else {
+																	log.Warnf("Source path %s not found in dependency %s", importValue.Child, dep.Name)
+																	break
+															}
+													}
+											}
+
+											// Insert schema at target path
+											if sourceSchema != nil {
+													// Special case for importing to root (parent = ".")
+													if importValue.Parent == "." {
+															log.Debugf("  Importing %s to root level", importValue.Child)
+															if result.Schema.Properties == nil {
+																	result.Schema.Properties = make(map[string]*schema.Schema)
+															}
+
+															// If it's an object with properties, merge those properties
+															if len(sourceSchema.Type) > 0 &&
+																sourceSchema.Type[0] == "object" && sourceSchema.Properties != nil {
+																	for k, v := range sourceSchema.Properties {
+																			if _, exists := result.Schema.Properties[k]; !exists {
+																					result.Schema.Properties[k] = v
+																					log.Debugf("    Added property %s to root", k)
+																			} else {
+																					log.Warnf("    Property %s already exists at root, skipping", k)
+																			}
+																	}
+															} else {
+																	// If it's a leaf property, we can't merge it at the root
+																	log.Warnf("  Cannot merge non-object property %s to root level", importValue.Child)
+															}
+															log.Debugf("  Successfully imported %s to root level", importValue.Child)
+													} else {
+															// Regular case - insert at specified path
+															currentSchema := &result.Schema
+															for i, part := range parentParts {
+																	if i == len(parentParts)-1 {
+																			// Target path found, add the source schema here
+																			if currentSchema.Properties == nil {
+																					currentSchema.Properties = make(map[string]*schema.Schema)
+																			}
+																			currentSchema.Properties[part] = sourceSchema
+																	} else {
+																			// Create intermediate objects if needed
+																			if currentSchema.Properties == nil {
+																					currentSchema.Properties = make(map[string]*schema.Schema)
+																			}
+
+																			if _, ok := currentSchema.Properties[part]; !ok {
+																					currentSchema.Properties[part] = &schema.Schema{
+																							Type:       []string{"object"},
+																							Properties: make(map[string]*schema.Schema),
+																							Title:      part,
+																					}
+																			}
+																			currentSchema = currentSchema.Properties[part]
+																	}
+															}
+															log.Debugf("  Successfully imported %s to %s", importValue.Child, importValue.Parent)
+													}
+											}
+									} else {
+											// String format or other format we don't support yet
+											log.Warnf("Unsupported import-values format in dependency %s", dep.Name)
+									}
+							}
+						}
+
 						if (dependencyResult.Chart.Type == "library") {
 							log.Debugf("Dependency %s is a library chart, merging values into parent", dep.Name)
 							for k, v := range dependencyResult.Schema.Properties {
