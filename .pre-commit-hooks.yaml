@@ -14,3 +14,11 @@
   language: docker_image
   name: Helm Schema Container
   require_serial: true
+- id: helm-schema-container-extract
+  args: []
+  description: Uses the container image of 'helm-schema' to create schema from the Helm chart's 'values.yaml' file, and inserts the result into a corresponding 'values.schema.json' file. Uses a modified version of 'helm-schema' able to extract tgz files.
+  entry: ghcr.io/makeshift/helm-schema:0.20.0-next-tgz
+  files: values.yaml
+  language: docker_image
+  name: Helm Schema Container
+  require_serial: true
