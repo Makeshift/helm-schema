@@ -414,6 +414,7 @@ By default, helm-schema will remove the `required` properties from the dependenc
 # @schema
 altname:
   foo: bar
+```
 
 #### `deprecated`
 
