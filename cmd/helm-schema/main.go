@@ -246,9 +246,20 @@ loop:
 							Properties:  dependencyResult.Schema.Properties,
 						}
 						depSchema.DisableRequiredProperties()
+						schema.FixRequiredProperties(&depSchema)
 
-						if dep.ImportValues != nil {
-							log.Debugf("Dependency %s has import-values, merging values into parent", dep.Name)
+						if (dependencyResult.Chart.Type == "library" && dep.ImportValues == nil) {
+							log.Debugf("Dependency %s is a library chart, merging values into parent", dep.Name)
+							for k, v := range dependencyResult.Schema.Properties {
+								if _, ok := result.Schema.Properties[k]; !ok {
+									result.Schema.Properties[k] = v
+								}
+							}
+							continue
+						} else if dep.Alias != "" && dep.ImportValues == nil {
+							result.Schema.Properties[dep.Alias] = &depSchema
+						} else if dep.ImportValues != nil {
+							log.Debugf("Dependency %s has import-values, merging those values and ignoring others", dep.Name)
 							for _, importValue := range dep.ImportValues {
 									if importValue.Child != "" && importValue.Parent != "" {
 											// Map format: {child: childPath, parent: parentPath}
@@ -302,6 +313,26 @@ loop:
 																	// If it's a leaf property, we can't merge it at the root
 																	log.Warnf("  Cannot merge non-object property %s to root level", importValue.Child)
 															}
+
+															// If the source schema has any required properties, we need to add them to the root
+															if len(sourceSchema.Required.Strings) > 0 {
+																for _, req := range sourceSchema.Required.Strings {
+																	exists := false
+																	for _, existingReq := range result.Schema.Required.Strings {
+																		if existingReq == req {
+																			exists = true
+																			break
+																		}
+																	}
+																	if !exists {
+																		result.Schema.Required.Strings = append(result.Schema.Required.Strings, req)
+																		log.Debugf("    Added required property %s to root", req)
+																	} else {
+																		log.Warnf("    Required property %s already exists at root, skipping", req)
+																	}
+																}
+															}
+
 															log.Debugf("  Successfully imported %s to root level", importValue.Child)
 													} else {
 															// Regular case - insert at specified path
@@ -334,21 +365,9 @@ loop:
 											}
 									} else {
 											// String format or other format we don't support yet
-											log.Warnf("Unsupported import-values format in dependency %s", dep.Name)
+											log.Warnf("Unsupported import-values format in dependency %s. Please use parent/child format.", dep.Name)
 									}
 							}
-						}
-
-						if (dependencyResult.Chart.Type == "library") {
-							log.Debugf("Dependency %s is a library chart, merging values into parent", dep.Name)
-							for k, v := range dependencyResult.Schema.Properties {
-								if _, ok := result.Schema.Properties[k]; !ok {
-									result.Schema.Properties[k] = v
-								}
-							}
-							continue
-						} else if dep.Alias != "" {
-							result.Schema.Properties[dep.Alias] = &depSchema
 						} else {
 							result.Schema.Properties[dep.Name] = &depSchema
 						}

@@ -252,6 +252,7 @@ type Schema struct {
 	ReadOnly             bool                   `yaml:"readOnly,omitempty"           json:"readOnly,omitempty"`
 	WriteOnly            bool                   `yaml:"writeOnly,omitempty"           json:"writeOnly,omitempty"`
 	Required             BoolOrArrayOfString    `yaml:"required,omitempty"             json:"required,omitempty"`
+	ForceRequired				 bool                   `yaml:"forceRequired,omitempty"        json:"forceRequired,omitempty,omitzero"`
 	CustomAnnotations    map[string]interface{} `yaml:"-"                              json:",omitempty"`
 	MinLength            *int                   `yaml:"minLength,omitempty"              json:"minLength,omitempty"`
 	MaxLength            *int                   `yaml:"maxLength,omitempty"              json:"maxLength,omitempty"`
@@ -343,6 +344,11 @@ func (s *Schema) Set() {
 // - Handling all conditional schemas (if/then/else)
 // - Processing all composition schemas (anyOf/oneOf/allOf)
 func (s *Schema) DisableRequiredProperties() {
+	if (s.ForceRequired) {
+		log.Debugf("ForceRequired true for %s", s.Title)
+		s.Required = NewBoolOrArrayOfString(s.Required.Strings, true)
+		return
+	}
 	s.Required = NewBoolOrArrayOfString([]string{}, false)
 	for _, v := range s.Properties {
 		v.DisableRequiredProperties()
@@ -665,8 +671,11 @@ func FixRequiredProperties(schema *Schema) error {
 	if schema.Properties != nil {
 		for propName, propValue := range schema.Properties {
 			FixRequiredProperties(propValue)
-			if propValue.Required.Bool && !slices.Contains(schema.Required.Strings, propName) {
+			if (propValue.Required.Bool || propValue.ForceRequired) && !slices.Contains(schema.Required.Strings, propName) {
 				schema.Required.Strings = append(schema.Required.Strings, propName)
+				schema.Required.Bool = true
+				log.Debugf("Adding %s to required properties", propName)
+				propValue.ForceRequired = false
 			}
 		}
 		if !slices.Contains(schema.Type, "object") {

@@ -128,6 +128,7 @@ foo: bar
 | [`pattern`](#pattern) | Regex pattern to test the value | Takes an `string` |
 | [`format`](#format) | The [format keyword](https://json-schema.org/understanding-json-schema/reference/string.html#format) allows for basic semantic identification of certain kinds of string values | Takes a [keyword](https://json-schema.org/understanding-json-schema/reference/string.html#format) |
 | [`required`](#required) | Adds the key to the required items | `true` or `false` or `array` |
+| [`forceRequired`](#forcerequired) | Forces the key to be required, even if it's imported from a dependency | `true` or `false` |
 | [`deprecated`](#deprecated) | Marks the option as deprecated | `true` or `false` |
 | [`items`](#items) | Contains the schema that describes the possible array items | Takes an `object` |
 | [`enum`](#enum) | Multiple allowed values. Accepts an array of `string` | Takes an `array` |
@@ -402,6 +403,17 @@ It's also possible to define an array of required properties on the parent.
 altName:
   foo: bar
 ```
+
+#### `forceRequired`
+
+By default, helm-schema will remove the `required` properties from the dependencies. If you want to force a property to be required, even if it's imported from a dependency, you can use `forceRequired: true`.
+
+```yaml
+# @schema
+# forceRequired: true
+# @schema
+altname:
+  foo: bar
 
 #### `deprecated`
 
