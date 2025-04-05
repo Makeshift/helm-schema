@@ -675,6 +675,8 @@ func FixRequiredProperties(schema *Schema) error {
 				schema.Required.Strings = append(schema.Required.Strings, propName)
 				schema.Required.Bool = true
 				log.Debugf("Adding %s to required properties", propName)
+				// Sort the required properties to ensure consistent ordering
+				slices.Sort(schema.Required.Strings)
 			}
 		}
 		if !slices.Contains(schema.Type, "object") {
