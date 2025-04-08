@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "additionalProperties": false,
   "properties": {
     "global": {
       "description": "Global values are values that can be accessed from any chart or subchart by exactly the same name.",
@@ -10,9 +9,10 @@
     },
     "service": {
       "additionalProperties": true,
+      "description": " additionalProperties: true @schema",
       "properties": {
         "conf": {
-          "additionalProperties": false,
+          "description": " type: object patternProperties:   \"^API_.*\":     type: string     pattern: ^api-key   \"^EMAIL_.*\":     type: string     format: idn-email examples: [\"API_PROVIDER_ONE: api-key-x\",\"EMAIL_ADMIN: admin@example.org\"] @schema",
           "examples": [
             "API_PROVIDER_ONE: api-key-x",
             "EMAIL_ADMIN: admin@example.org"
@@ -35,6 +35,7 @@
         },
         "contact": {
           "default": "",
+          "description": " format: idn-email examples: [name@domain.tld] @schema",
           "examples": [
             "name@domain.tld"
           ],
@@ -50,7 +51,6 @@
           "type": "boolean"
         },
         "env": {
-          "additionalProperties": false,
           "description": "Environment variables. If you want to provide auto-completion to the user ",
           "properties": {
             "ADMIN_EMAIL": {
@@ -85,7 +85,7 @@
           "title": "env"
         },
         "hosts": {
-          "description": "Will give auto-completion for the below structure \nhosts: \n - name:\n     url: my.example.org",
+          "description": " type: array items:   type: object   properties:     host:       type: object       properties:         url:           type: string           format: idn-hostname @schema Will give auto-completion for the below structure  hosts:   - name:      url: my.example.org",
           "items": {
             "properties": {
               "host": {
@@ -110,6 +110,7 @@
         "maintainer": {
           "const": "maintainer@example.org",
           "default": "maintainer@example.org",
+          "description": " const: maintainer@example.org @schema",
           "required": [],
           "title": "maintainer"
         },
@@ -124,12 +125,13 @@
             }
           ],
           "default": "",
-          "description": "Name of the deployed service. Defined in the schema annotation",
+          "description": " description: Name of the deployed service. Defined in the schema annotation anyOf:   - type: null   - pattern: ^foo- @schema This comment will not be parsed as 'description', the 'description' field take precedence over comments",
           "required": [],
           "title": "name"
         },
         "port": {
           "default": 80,
+          "description": " type: integer minimum: 80 maximum: 89 @schema",
           "maximum": 89,
           "minimum": 80,
           "required": [],
@@ -138,6 +140,7 @@
         },
         "storage": {
           "default": "10Gib",
+          "description": " type: string pattern: ^[1-9][0-9]*Gib$ examples: [\"5Gib\",\"10Gib\",\"20Gib\"] @schema",
           "examples": [
             "5Gib",
             "10Gib",
@@ -150,12 +153,14 @@
         },
         "telemetry": {
           "default": true,
+          "description": " type: boolean default: true @schema",
           "required": [],
           "title": "telemetry",
           "type": "boolean"
         },
         "type": {
           "default": "application",
+          "description": " enum: - application - controller - api @schema",
           "enum": [
             "application",
             "controller",
@@ -165,9 +170,7 @@
           "title": "type"
         }
       },
-      "required": [
-        "enabled"
-      ],
+      "required": [],
       "title": "service"
     }
   },

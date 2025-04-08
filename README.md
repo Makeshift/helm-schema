@@ -129,6 +129,7 @@ foo: bar
 | [`format`](#format) | The [format keyword](https://json-schema.org/understanding-json-schema/reference/string.html#format) allows for basic semantic identification of certain kinds of string values | Takes a [keyword](https://json-schema.org/understanding-json-schema/reference/string.html#format) |
 | [`required`](#required) | Adds the key to the required items | `true` or `false` or `array` |
 | [`forceRequired`](#forcerequired) | Forces the key to be required, even if it's imported from a dependency | `true` or `false` |
+| [`override`](#override) | Allows the schema for this key to override values inherited from dependencies | `true` or `false` |
 | [`deprecated`](#deprecated) | Marks the option as deprecated | `true` or `false` |
 | [`items`](#items) | Contains the schema that describes the possible array items | Takes an `object` |
 | [`enum`](#enum) | Multiple allowed values. Accepts an array of `string` | Takes an `array` |
@@ -415,6 +416,10 @@ By default, helm-schema will remove the `required` properties from the dependenc
 altname:
   foo: bar
 ```
+
+#### `override`
+
+If a key is defined in a dependency, you can override the schema for that key by using `override: true`. This will allow you to change the schema for that key.
 
 #### `deprecated`
 

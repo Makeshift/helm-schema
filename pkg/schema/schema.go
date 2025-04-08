@@ -253,6 +253,7 @@ type Schema struct {
 	WriteOnly            bool                   `yaml:"writeOnly,omitempty"           json:"writeOnly,omitempty"`
 	Required             BoolOrArrayOfString    `yaml:"required,omitempty"             json:"required,omitempty"`
 	ForceRequired				 bool                   `yaml:"forceRequired,omitempty"        json:"forceRequired,omitempty,omitzero"`
+	Override             bool                   `yaml:"override,omitempty"             json:"override,omitempty"`
 	CustomAnnotations    map[string]interface{} `yaml:"-"                              json:",omitempty"`
 	MinLength            *int                   `yaml:"minLength,omitempty"              json:"minLength,omitempty"`
 	MaxLength            *int                   `yaml:"maxLength,omitempty"              json:"maxLength,omitempty"`

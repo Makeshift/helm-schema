@@ -246,7 +246,6 @@ loop:
 							Properties:  dependencyResult.Schema.Properties,
 						}
 						depSchema.DisableRequiredProperties()
-						schema.FixRequiredProperties(&depSchema)
 
 						if (dependencyResult.Chart.Type == "library" && dep.ImportValues == nil) {
 							log.Debugf("Dependency %s is a library chart, merging values into parent", dep.Name)
@@ -299,6 +298,7 @@ loop:
 															}
 
 															// If it's an object with properties, merge those properties
+															// with what's already in the root schema taking precedence
 															if len(sourceSchema.Type) > 0 &&
 																sourceSchema.Type[0] == "object" && sourceSchema.Properties != nil {
 																	for k, v := range sourceSchema.Properties {
@@ -306,7 +306,8 @@ loop:
 																					result.Schema.Properties[k] = v
 																					log.Debugf("    Added property %s to root", k)
 																			} else {
-																					log.Warnf("    Property %s already exists at root, skipping", k)
+																					log.Warnf("    Property %s already exists at root, merging", k)
+																					deepMergeProperties(v, result.Schema.Properties[k], k)
 																			}
 																	}
 															} else {
@@ -368,6 +369,7 @@ loop:
 											log.Warnf("Unsupported import-values format in dependency %s. Please use parent/child format.", dep.Name)
 									}
 							}
+							schema.FixRequiredProperties(&result.Schema)
 						} else {
 							result.Schema.Properties[dep.Name] = &depSchema
 						}
@@ -410,6 +412,32 @@ loop:
 		return errors.New("some errors were found")
 	}
 	return nil
+}
+
+// deepMergeProperties merges properties from source into target
+// with target properties taking precedence in conflicts
+func deepMergeProperties(source *schema.Schema, target *schema.Schema, path string) {
+    for k, srcProp := range source.Properties {
+        if targetProp, exists := target.Properties[k]; exists {
+            // Check if both are objects with properties - only then do deep merge
+            isTargetObject := targetProp.Type != nil && len(targetProp.Type) > 0 &&
+                            targetProp.Type[0] == "object" && targetProp.Properties != nil
+            isSourceObject := srcProp.Type != nil && len(srcProp.Type) > 0 &&
+                            srcProp.Type[0] == "object" && srcProp.Properties != nil
+
+            if isTargetObject && isSourceObject {
+                // Recursively merge properties
+                log.Debugf("    Deep merging nested object property %s", k)
+                deepMergeProperties(srcProp, targetProp, path+"."+k)
+            } else {
+                log.Warnf("    Property %s already exists at root, keeping existing definition", k)
+            }
+        } else {
+            // Property doesn't exist in target, so add it
+            target.Properties[k] = srcProp
+            log.Debugf("    Added property %s to root", k)
+        }
+    }
 }
 
 func main() {
