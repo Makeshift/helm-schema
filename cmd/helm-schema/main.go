@@ -245,7 +245,8 @@ loop:
 							Description: dependencyResult.Chart.Description,
 							Properties:  dependencyResult.Schema.Properties,
 						}
-						depSchema.DisableRequiredProperties()
+						isParentLibraryChart := result.Chart.Type == "library"
+						depSchema.DisableRequiredProperties(isParentLibraryChart)
 
 						if (dependencyResult.Chart.Type == "library" && dep.ImportValues == nil) {
 							log.Debugf("Dependency %s is a library chart, merging values into parent", dep.Name)

@@ -344,52 +344,54 @@ func (s *Schema) Set() {
 // - Recursively disabling required properties in all nested schemas (properties, items, etc.)
 // - Handling all conditional schemas (if/then/else)
 // - Processing all composition schemas (anyOf/oneOf/allOf)
-func (s *Schema) DisableRequiredProperties() {
-	if (s.ForceRequired) {
+func (s *Schema) DisableRequiredProperties(isParentLibraryChart bool) {
+	// If the parent chart is a library chart, ignore the ForceRequired property
+	// to avoid spurious schema failures in the library values.yaml
+	if (s.ForceRequired && !isParentLibraryChart) {
 		log.Debugf("ForceRequired true for %s", s.Title)
 		s.Required = NewBoolOrArrayOfString(s.Required.Strings, true)
 		return
 	}
 	s.Required = NewBoolOrArrayOfString([]string{}, false)
 	for _, v := range s.Properties {
-		v.DisableRequiredProperties()
+		v.DisableRequiredProperties(isParentLibraryChart)
 	}
 	if s.Items != nil {
-		s.Items.DisableRequiredProperties()
+		s.Items.DisableRequiredProperties(isParentLibraryChart)
 	}
 
 	if s.AnyOf != nil {
 		for _, v := range s.AnyOf {
-			v.DisableRequiredProperties()
+			v.DisableRequiredProperties(isParentLibraryChart)
 		}
 	}
 	if s.OneOf != nil {
 		for _, v := range s.OneOf {
-			v.DisableRequiredProperties()
+			v.DisableRequiredProperties(isParentLibraryChart)
 		}
 	}
 	if s.AllOf != nil {
 		for _, v := range s.AllOf {
-			v.DisableRequiredProperties()
+			v.DisableRequiredProperties(isParentLibraryChart)
 		}
 	}
 	if s.If != nil {
-		s.If.DisableRequiredProperties()
+		s.If.DisableRequiredProperties(isParentLibraryChart)
 	}
 	if s.Else != nil {
-		s.Else.DisableRequiredProperties()
+		s.Else.DisableRequiredProperties(isParentLibraryChart)
 	}
 	if s.Then != nil {
-		s.Then.DisableRequiredProperties()
+		s.Then.DisableRequiredProperties(isParentLibraryChart)
 	}
 	if s.Not != nil {
-		s.Not.DisableRequiredProperties()
+		s.Not.DisableRequiredProperties(isParentLibraryChart)
 	}
 
 	// Add handling for AdditionalProperties when it's a Schema
 	if s.AdditionalProperties != nil {
 		if subSchema, ok := s.AdditionalProperties.(Schema); ok {
-			subSchema.DisableRequiredProperties()
+			subSchema.DisableRequiredProperties(isParentLibraryChart)
 			s.AdditionalProperties = subSchema
 		}
 	}
