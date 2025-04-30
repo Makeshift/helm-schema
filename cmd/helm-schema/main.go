@@ -78,6 +78,8 @@ func exec(cmd *cobra.Command, _ []string) error {
 	dependenciesFilter := viper.GetStringSlice("dependencies-filter")
 	dependenciesFilterMap := make(map[string]bool)
 	dontAddGlobal := viper.GetBool("dont-add-global")
+	ignoreTopLevelValues := viper.GetBool("ignore-parent-values")
+
 	for _, dep := range dependenciesFilter {
 		dependenciesFilterMap[dep] = true
 	}
@@ -194,6 +196,11 @@ loop:
 				log.Error(err)
 			}
 			continue
+		}
+
+		if result.Chart != nil && ignoreTopLevelValues && isTopLevelChart(result.Chart.Name, results) {
+				log.Infof("Ignoring current values schema for %s as --ignore-parent-values is set", result.Chart.Name)
+				result.Schema.Properties = make(map[string]*schema.Schema)
 		}
 
 		log.Debugf("Processing result for chart: %s (%s)", result.Chart.Name, result.ChartPath)
@@ -452,4 +459,21 @@ func main() {
 		log.Errorf("Execution error: %s", err)
 		os.Exit(1)
 	}
+}
+
+// isTopLevelChart checks if a chart is not a dependency of any other chart
+func isTopLevelChart(chartName string, results []*schema.Result) bool {
+    // A chart is a top-level chart if it's not a dependency of any other chart
+    for _, result := range results {
+        if result.Chart == nil {
+            continue
+        }
+
+        for _, dep := range result.Chart.Dependencies {
+            if dep.Name == chartName {
+                return false // This chart is a dependency of another chart
+            }
+        }
+    }
+    return true // Not found as a dependency of any chart
 }
