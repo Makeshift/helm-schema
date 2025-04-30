@@ -90,6 +90,7 @@ Flags:
   -s, --keep-full-comment             "keep the whole leading comment (default: cut at empty line)"
   -l, --log-level string              "level of logs that should printed, one of (panic, fatal, error, warning, info, debug, trace) (default "info")"
   -n, --no-dependencies               "don't analyze dependencies"
+  -j, --ignore-parent-values          "ignore the top-level values.yaml file, only produce schema for dependencies"
   -o, --output-file string            "jsonschema file path relative to each chart directory to which jsonschema will be written (default 'values.schema.json')"
   -f, --value-files strings           "filenames to check for chart values (default [values.yaml])"
   -k, --skip-auto-generation strings  "skip the auto generation for these fields (default [])"
