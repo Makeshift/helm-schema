@@ -79,6 +79,7 @@ func exec(cmd *cobra.Command, _ []string) error {
 	dependenciesFilterMap := make(map[string]bool)
 	dontAddGlobal := viper.GetBool("dont-add-global")
 	ignoreTopLevelValues := viper.GetBool("ignore-parent-values")
+	noExportsOnParent := viper.GetBool("no-exports-on-parent")
 
 	for _, dep := range dependenciesFilter {
 		dependenciesFilterMap[dep] = true
@@ -388,6 +389,15 @@ loop:
 				} else {
 					log.Warnf("Dependency without name found (checkout %s).", result.ChartPath)
 				}
+			}
+		}
+
+		if noExportsOnParent && isTopLevelChart(result.Chart.Name, results) {
+			// Check if the schema has a property named "exports"
+			if _, ok := result.Schema.Properties["exports"]; ok {
+				// Remove the "exports" property from the schema
+				delete(result.Schema.Properties, "exports")
+				log.Debugf("Removed 'exports' property from %s schema as --no-exports-on-parent is set", result.Chart.Name)
 			}
 		}
 

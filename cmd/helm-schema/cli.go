@@ -77,6 +77,8 @@ func newCommand(run func(cmd *cobra.Command, args []string) error) (*cobra.Comma
 		BoolP("dont-add-global", "g", false, "dont auto add global property")
 	cmd.PersistentFlags().
 	  BoolP("ignore-parent-values", "j", false, "ignore the top-level values.yaml file, only produce schema for dependencies")
+	cmd.PersistentFlags().
+		BoolP("no-exports-on-parent", "e", false, "don't include 'exports' from dependencies in the top-level schema")
 
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("HELM_SCHEMA")

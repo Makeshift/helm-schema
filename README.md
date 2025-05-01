@@ -91,6 +91,7 @@ Flags:
   -l, --log-level string              "level of logs that should printed, one of (panic, fatal, error, warning, info, debug, trace) (default "info")"
   -n, --no-dependencies               "don't analyze dependencies"
   -j, --ignore-parent-values          "ignore the top-level values.yaml file, only produce schema for dependencies"
+  -e, --no-exports-on-parent          "strip out the 'exports' property from the top-level chart schema if present (may have been inherited from a dependency library chart)"
   -o, --output-file string            "jsonschema file path relative to each chart directory to which jsonschema will be written (default 'values.schema.json')"
   -f, --value-files strings           "filenames to check for chart values (default [values.yaml])"
   -k, --skip-auto-generation strings  "skip the auto generation for these fields (default [])"
